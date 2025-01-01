@@ -286,6 +286,7 @@ def ex4():
     plt.ylabel("Puissance")
     plt.legend()
     plt.grid()
+    plt.yscale('log')
 
 
     plt.tight_layout()
