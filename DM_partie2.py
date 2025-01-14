@@ -249,18 +249,62 @@ def ex2():
     A = np.sqrt(2)
     sigma = 0.08
 
-    liste_t = np.array(range(N)/f_ech)
+    liste_t = np.array(range(N))/f_ech
     signal2 = np.sin(liste_t*f_sinus)*A + np.random.rand(N)*sigma
 
     Tranches = [64,128,256,512]
-    for tranche in Tranches:
-        pass
+    liste_col = ['red','blue','green','purple']
+    signals = [signal1, bruit, signal2]
+    signalstxt = ['signal1', 'bruit', 'signal2']
+    
+    for i in range(len(signals)):
+        signal=signals[i]
+        plt.figure(figsize=(14, 8))
+        plt.title("Periodogramme moyen avec différentes tranches de "+signalstxt[i])
+        
+        for taille_tranche in Tranches:
+            periodogramme_liste=[]
+            for i in range(1050//taille_tranche):
+                start_index = i*taille_tranche
+                tfd = np.fft.fft(signal[start_index:start_index+taille_tranche])
+                freqs= np.fft.fftfreq(taille_tranche)
+                periodogramme_liste.append(np.abs(tfd)* np.abs(tfd) / taille_tranche)
+            periodo_moyen = compute_statistics(periodogramme_liste)['mean']
+
+            # Separate and reorder the frequencies and corresponding amplitudes
+            positive_freqs = freqs[freqs >= 0]
+            negative_freqs = freqs[freqs < 0]
+
+            positive_periodo_moyen = periodo_moyen[freqs >= 0]
+            negative_periodo_moyen = periodo_moyen[freqs < 0]
+
+            # Reassemble the lists: negative frequencies first, then positive
+            freqs_reordered = np.concatenate((negative_freqs, positive_freqs))
+            periodo_moyen_reordered = np.concatenate((negative_periodo_moyen, positive_periodo_moyen))
+
+            plt.subplot(2, 2, Tranches.index(taille_tranche) + 1)
+            plt.grid(True)
+            plt.xlabel("Fréquence (Hz)")
+            plt.ylabel("Amplitude en dB")
+            plt.yscale('log')
+
+            # Plotting the reordered periodogram
+            plt.plot(freqs_reordered, periodo_moyen_reordered, label='périodogramme moyen pour des tranches = ' + str(taille_tranche), color=liste_col[Tranches.index(taille_tranche)])
+
+            plt.legend()
+
+        plt.tight_layout()
+        plt.show()
+
+
+
 
 
 
 if __name__ == "__main__":
-    intro()
-    ex1_simple()
-    print("valeurs theorique q1")
+    #intro()
+    #ex1_simple()
+    #print("valeurs theorique q1")
+    ex2()
 
 
