@@ -126,7 +126,7 @@ def ex2():
 
 def ex3():
     # Paramètres d'entrée
-    N = 500  # Nombre d'échantillons par tranche
+    N = 1024  # Nombre d'échantillons par tranche
     M = N-1   # Horizon de calcul
     K = 16    # Nombre de tranches
     variance = 2
@@ -205,7 +205,7 @@ def ex3():
     plt.subplot(2, 1, 1)  # 2 lignes, 1 colonne, 1ère position
     plt.plot(k_values[border:-border], stats_bt["variance"][border:-border], label="Variance BT", color="blue")
     plt.plot(k_values[border:-border], stats_bartlett["variance"][border:-border], label="Variance Bartlett", color="orange")
-    plt.title("Variance empirique des coefficients de corrélation")
+    plt.title("Variance empirique des coefficients de corrélation sans le bord de "+str(border))
     plt.ylabel("Variance empirique")
     plt.legend()
     plt.grid()
@@ -214,7 +214,7 @@ def ex3():
     plt.subplot(2, 1, 2)  # 2 lignes, 1 colonne, 2e position
     plt.plot(k_values[border:-border], eqm_estim_bt[border:-border], label="EQM BT", color="blue")
     plt.plot(k_values[border:-border], eqm_estim_bartlett[border:-border], label="EQM Bartlett", color="orange")
-    plt.title("EQM des coefficients de corrélation")
+    plt.title("EQM des coefficients de corrélation sans le bord de "+str(border))
     plt.xlabel("Indice k")
     plt.ylabel("EQM avec l'autocorrélation théorique")
     plt.legend()
@@ -228,7 +228,7 @@ def ex4():
     # Paramètres d'entrée
     N = 1024 #Nombre d'échantillons par tranche
     M = 512  # Horizon de calcul
-    K = 5    # Nombre de tranches
+    K = 16    # Nombre de tranches
     variance = 2
     sigma = np.sqrt(variance)
     

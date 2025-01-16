@@ -82,160 +82,70 @@ def intro():
 
 
 def ex1_simple():
-    #signal1
-    plt.figure(figsize=(14, 8))
-    plt.title("Périodogramme simple du signal1 pour différentes valeurs de N")
 
-    Nb_tranches = 100
-    liste_statistiques = []
+    #iterables
     liste_N = [128, 256, 512,1024]
     liste_col = ['red','blue','green','purple']
-    #itération pour différents N
-    for n in liste_N:
-        liste_periodogramme = []
+    signals = [signal1, bruit]
+    signaltxt = ['signal1', 'bruit']
+    modeles_theoriques = [pos_periodogramme_th*variance, np.ones(len(pos_periodogramme_th))]
+    K=16
 
-        #On moyenne sur plusieurs tranches dans 0,N de longueur n
-        for tranche in range(Nb_tranches):
-            start_index = n*tranche
-            tfd = np.fft.fft(signal1[start_index:start_index+n])
-            freqs= np.fft.fftfreq(n)
-            periodogramme = np.abs(tfd)* np.abs(tfd) / n
+    for i in range(len(signals)):
+        signal=signals[i]
+        start_index=0
+        plt.figure(figsize=(14, 8))
+        plt.title("Périodogramme simple du " +signaltxt[i]+ " pour différentes valeurs de N")
 
-            # Ne garder que les fréquences positives
-            pos_freqs = freqs[:len(freqs)//2]
-            pos_periodogramme = periodogramme[:len(periodogramme)//2]
+        #itération pour différents N
+        for n in liste_N:
+            #réinit pour chaque N
+            start_index = 0
+            liste_periodo_simples=[]
 
-            liste_periodogramme.append(pos_periodogramme)
+            #calcul du périodograme pour K tranches
+            for k in range(K):
+                start_index += n
+                tfd = np.fft.fft(signal[start_index:start_index+n])
+                freqs= np.fft.fftfreq(n)
+                periodogramme = np.abs(tfd) ** 2 / n
 
-        #calcul de l'estimateur du périodogramme
-        liste_statistiques.append(compute_statistics(liste_periodogramme))
+                # Ne garder que les fréquences positives
+                pos_freqs = freqs[:len(freqs)//2]
+                pos_periodogramme = periodogramme[:len(periodogramme)//2]
 
-        #creation des subplots
-        plt.subplot(2,2,liste_N.index(n)+1)
-        plt.grid(True)
-        plt.xlabel("Fréquence")
-        plt.ylabel("Amplitude en dB")
-        plt.yscale('log')
+                #ajout aux listes
+                liste_periodo_simples.append(pos_periodogramme)
 
-        #affichage dans la meme couleur d'une réalisation et de l'estimateur
-        col_ = liste_col[liste_N.index(n)]
-        plt.plot(pos_freqs,liste_statistiques[-1]['mean'], label='estimateur du périodogramme pour N = ' + str(n),color=col_)
-        plt.plot(pos_freqs, pos_periodogramme, label='réalisation d un periodogramme pour N = '+str(n),color=col_, alpha=0.5)
-        plt.plot(pos_freqs_th, pos_periodogramme_th, label='modèle de référence', color='black', alpha=0.6)
+            periodo_stats = compute_statistics(liste_periodo_simples)
+            periodogramme_moyen = periodo_stats['mean']
 
-        #affichage de la ligne -60DB
-        line_at_minus_60_dB = 0.001
-        plt.axhline(y=line_at_minus_60_dB, color='black', linestyle='--', label='-60 dB')
-        plt.legend()
-    plt.tight_layout()
+            #pos_periodogramme_th
+            #pos_freqs_th
 
+            #creation des subplots
+            plt.subplot(2,2,liste_N.index(n)+1)
+            plt.grid(True)
+            plt.xlabel("Fréquence")
+            plt.ylabel("Amplitude en dB")
+            #plt.yscale('log')
 
-    plt.figure(figsize=(14, 8))
-    plt.title("Biais et variance des estimateurs pour différentes valeurs de N dans signal1")
-    #calcul du biais et variance
-    for n in liste_N:
-        freqs= np.fft.fftfreq(n)
-        pos_freqs = freqs[:len(freqs)//2]
-        # Créer une fonction d'interpolation pour le periodogramme
-        interp_periodo_th = interp1d(pos_freqs_th, pos_periodogramme_th, kind='linear', fill_value='extrapolate')
-        periodo_interpolated = interp_periodo_th(pos_freqs)
+            #affichage dans la meme couleur d'une réalisation et de l'estimateur
+            col_ = liste_col[liste_N.index(n)]
+            plt.plot(pos_freqs, periodogramme_moyen ,label='périodogramme moyen sur K segments distincs pour N = ' + str(n),color=col_)
+            plt.plot(pos_freqs, liste_periodo_simples[-1], label='périodogramme simple sur un segment', color=col_, alpha=0.5)
+            plt.plot(pos_freqs_th, modeles_theoriques[i], label='périodogramme théorique', color='gray', alpha=0.8)
 
-        #calcul des stats
-        biais = np.abs(liste_statistiques[liste_N.index(n)]['mean']-periodo_interpolated)
-        var = liste_statistiques[liste_N.index(n)]['variance']
-
-        #creation des subplots
-        plt.subplot(2,2,liste_N.index(n)+1)
-        plt.grid(True)
-        plt.xlabel("Fréquence")
-        plt.ylabel("Amplitude en dB")
-        plt.yscale('log')
-
-        #affichage dans la meme couleur d'une réalisation et de l'estimateur
-        col_ = liste_col[liste_N.index(n)]
-        plt.plot(pos_freqs, biais, label='biais du périodogramme pour N = ' + str(n),color=col_)
-        plt.plot(pos_freqs, var, label='variance du periodogramme pour N = '+str(n),color=col_, alpha=0.2)
-        
-        #affichage de la ligne -60DB
-        line_at_minus_60_dB = 0.001
-        plt.axhline(y=line_at_minus_60_dB, color='black', linestyle='--', label='-60 dB')
-        plt.legend()
-    plt.tight_layout()
-    plt.show()
+            #affichage de la ligne -60DB
+            line_at_minus_60_dB = 0.001
+            plt.axhline(y=line_at_minus_60_dB, color='black', linestyle='--', label='-60 dB')
+            plt.legend()
+            plt.yscale('log')
+        plt.tight_layout()
+        plt.show()
 
 
-    #bruit
-    plt.figure(figsize=(14, 8))
-    plt.title("Périodogramme simple du bruit pour différentes valeurs de N")
 
-    Nb_tranches = 100
-    liste_statistiques = []
-    liste_N = [128, 256, 512,1024]
-    liste_col = ['red','blue','green','purple']
-    #itération pour différents N
-    for n in liste_N:
-        liste_periodogramme = []
-
-        #On moyenne sur plusieurs tranches dans 0,N de longueur n
-        for tranche in range(Nb_tranches):
-            start_index = n*tranche
-            tfd = np.fft.fft(bruit[start_index:start_index+n])
-            freqs= np.fft.fftfreq(n)
-            periodogramme = np.abs(tfd)* np.abs(tfd) / n
-
-            # Ne garder que les fréquences positives
-            pos_freqs = freqs[:len(freqs)//2]
-            pos_periodogramme = periodogramme[:len(periodogramme)//2]
-
-            liste_periodogramme.append(pos_periodogramme)
-
-        #calcul de l'estimateur du périodogramme
-        liste_statistiques.append(compute_statistics(liste_periodogramme))
-
-        #creation des subplots
-        plt.subplot(2,2,liste_N.index(n)+1)
-        plt.grid(True)
-        plt.xlabel("Fréquence")
-        plt.ylabel("Amplitude en dB")
-        plt.yscale('log')
-
-        #affichage dans la meme couleur d'une réalisation et de l'estimateur
-        col_ = liste_col[liste_N.index(n)]
-        plt.plot(pos_freqs,liste_statistiques[-1]['mean'], label='estimateur du périodogramme pour N = ' + str(n),color=col_)
-        plt.plot(pos_freqs, pos_periodogramme, label='réalisation d un periodogramme pour N = '+str(n),color=col_, alpha=0.5)
-        plt.plot(pos_freqs, len(pos_freqs)*[1], label='modèle de référence', color='black', alpha=0.6)
-
-        plt.legend()
-    plt.tight_layout()
-
-
-    plt.figure(figsize=(14, 8))
-    plt.title("Biais et variance des periodogrammes simples pour différentes valeurs de N dans bruit")
-    #calcul du biais et variance
-    for n in liste_N:
-        freqs= np.fft.fftfreq(n)
-        pos_freqs = freqs[:len(freqs)//2]
-        # Créer une fonction d'interpolation pour le periodogramme
-
-        #calcul des stats
-        biais = np.abs(liste_statistiques[liste_N.index(n)]['mean']-[1]*len(pos_freqs))
-        var = liste_statistiques[liste_N.index(n)]['variance']
-
-        #creation des subplots
-        plt.subplot(2,2,liste_N.index(n)+1)
-        plt.grid(True)
-        plt.xlabel("Fréquence")
-        plt.ylabel("Amplitude en dB")
-        plt.yscale('log')
-
-        #affichage dans la meme couleur d'une réalisation et de l'estimateur
-        col_ = liste_col[liste_N.index(n)]
-        plt.plot(pos_freqs, biais, label='biais du périodogramme pour N = ' + str(n),color=col_)
-        plt.plot(pos_freqs, var, label='variance du periodogramme pour N = '+str(n),color=col_, alpha=0.2)
-        
-        plt.legend()
-    plt.tight_layout()
-    plt.show()
 
 
 
@@ -291,6 +201,10 @@ def ex2():
             # Plotting the reordered periodogram
             plt.plot(freqs_reordered, periodo_moyen_reordered, label='périodogramme moyen pour des tranches = ' + str(taille_tranche), color=liste_col[Tranches.index(taille_tranche)])
 
+            #plot the comparative
+            #plt.plot(freqs_reordered, periodo_simple, label='périodogramme simple pour des tranches = ' + str(taille_tranche), color=liste_col[Tranches.index(taille_tranche)], alpha = 0.5)
+            #plt.plot(freqs_reordered, periodo_th, label='périodogramme theorique', color='gray')
+
             plt.legend()
 
         plt.tight_layout()
@@ -302,9 +216,9 @@ def ex2():
 
 
 if __name__ == "__main__":
-    #intro()
-    #ex1_simple()
+    intro()
+    ex1_simple()
     #print("valeurs theorique q1")
-    ex2()
+    #ex2()
 
 
