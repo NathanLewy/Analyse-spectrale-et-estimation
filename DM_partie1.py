@@ -39,21 +39,15 @@ def compute_statistics(estimations):
 def ex1():
     # Paramètres d'entrée
     N = 1024  # Exemple: nombre d'échantillons
-    i = 0    # Exemple: indice du premier échantillon
     M = 1023   # Exemple: horizon de calcul
-    method = "blackman-tukey"  # Choix de la méthode: "blackman-tukey" ou "bartlett"
 
-    # Vérification des valeurs
-    if i < 0 or N <= 0 or M <= 0 or M>=N:
-        print("Erreur: N, i, et M doivent être positifs et valides.")
-        return
 
     # Génération d'un signal aléatoire pour l'exemple
     np.random.seed(42)  # Pour des résultats reproductibles
-    signal = np.random.randn(i + N)  # Signal aléatoire
+    signal = np.random.randn(N)  # Signal aléatoire
 
     # Extraction des échantillons à partir de i
-    signal = signal[i:i + N]
+    signal = signal[:N]
     # Calcul des coefficients selon les deux méthodes
     gamma_bt = blackman_tukey_estimator(signal, N, M)
     gamma_bartlett = bartlett_estimator(signal, N, M)
@@ -96,6 +90,8 @@ def ex2():
     # Calcul des coefficients selon les deux méthodes
     gamma_bt = blackman_tukey_estimator(signal, N, M)
     gamma_bartlett = bartlett_estimator(signal, N, M)
+    gamma_th = np.zeros(2*M+1)
+    gamma_th[M]=variance
 
     # Visualisation des coefficients
     k_values = np.arange(-M, M + 1)
@@ -103,6 +99,7 @@ def ex2():
     plt.figure(figsize=(10, 6))
     plt.plot(k_values, gamma_bt, color="blue", label="Blackman-Tukey")
     plt.plot(k_values, gamma_bartlett, color="orange", label="Bartlett")
+    plt.plot(k_values, gamma_th, label='Gamma théorique', color="red", alpha=0.5)
     plt.title("Estimation des coefficients de corrélation")
     plt.xlabel("Indice k")
     plt.ylabel("Coefficient de corrélation")
@@ -129,7 +126,7 @@ def ex3():
     N = 1024  # Nombre d'échantillons par tranche
     M = N-1   # Horizon de calcul
     K = 16    # Nombre de tranches
-    variance = 2
+    variance = 0.1
     sigma = np.sqrt(variance)
     
 
@@ -186,14 +183,28 @@ def ex3():
     k_values = np.arange(-M, M + 1)
 
     plt.figure(figsize=(12, 8))
+    plt.subplot(2, 1, 1)
     plt.plot(k_values, stats_bt["mean"], label="Moyenne BT", color="blue")
     plt.plot(k_values, stats_bartlett["mean"], label="Moyenne Bartlett", color="orange")
-    plt.plot(k_values, gamma_th, label='Gamma théorique', color="red", alpha=0.5)
+    plt.plot(k_values, gamma_th, label='Gamma théorique', color="red", alpha=0.5)    
+
     plt.title("Moyenne empirique des coefficients de corrélation")
     plt.xlabel("Indice k")
     plt.ylabel("Moyenne empirique")
     plt.legend()
     plt.grid()
+
+    plt.subplot(2, 1, 2)
+    plt.plot(k_values, stats_bt["mean"]-gamma_th, label="Biais BT", color="blue")
+    plt.plot(k_values, stats_bartlett["mean"]-gamma_th, label="Biais Bartlett", color="orange")
+
+    plt.title("Biais empirique des coefficients de corrélation")
+    plt.xlabel("Indice k")
+    plt.ylabel("Biais empirique")
+    plt.legend()
+    plt.grid()
+
+    plt.tight_layout()
     plt.show()
 
 
@@ -276,6 +287,7 @@ def ex4():
     plt.xlabel("Fréquence")
     plt.ylabel("Puissance")
     plt.legend()
+    plt.yscale('log')
     plt.grid()
 
     plt.subplot(2,1,2)
