@@ -99,7 +99,7 @@ def ex1_signal_et_bruit():
     signals = [signal1, bruit]
     signaltxt = ['signal1', 'bruit']
     modeles_theoriques = [pos_periodogramme_th * variance, (sigma_bb**2) * np.ones(len(pos_periodogramme_th))]
-    K = 16
+    K = 30
 
     for i in range(len(signals)):
         signal = signals[i]
@@ -205,7 +205,7 @@ def ex1_signal_et_bruit():
 
 def ex1_sinus():
     
-    K = 32  # Nombre de tranches pour l'estimation
+    K = 30  # Nombre de tranches pour l'estimation
     liste_N = [128, 256, 512, 1024]  # Différentes valeurs de N
     liste_col = ['red', 'blue', 'green', 'purple']  # Couleurs pour les graphes
     
@@ -217,7 +217,7 @@ def ex1_sinus():
     for i, N in enumerate(liste_N):
         # Génération du signal sinusoïdal
         A = 1.0  # Amplitude du signal
-        nu_0 = 10/N # Fréquence réduite (par exemple, ν₀ = 0.1)
+        nu_0 = int(0.1 * N)/N # Fréquence réduite (par exemple, ν₀ = 0.1)
         phi = 0.2  # Phase initiale
         t = np.arange(0, K * N)  # Temps discret
         signal = A * np.sin(2 * np.pi * nu_0 * t + phi)  # Signal sinusoïdal
@@ -264,7 +264,7 @@ def ex1_sinus():
     plt.show()
 
 
-    K = 32  # Nombre de tranches pour l'estimation
+    K = 30  # Nombre de tranches pour l'estimation
     liste_N = [128, 256, 512, 1024]  # Différentes valeurs de N
     liste_col = ['red', 'blue', 'green', 'purple']  # Couleurs pour les graphes
     
@@ -276,7 +276,7 @@ def ex1_sinus():
     for i, N in enumerate(liste_N):
         # Génération du signal sinusoïdal
         A = 1.0  # Amplitude du signal
-        nu_0 = (10 + 1/2)/N # Fréquence réduite (par exemple, ν₀ = 0.1)
+        nu_0 = (int(0.1*N) + 1/2)/N # Fréquence réduite (par exemple, ν₀ = 0.1)
         phi = 0.2  # Phase initiale
         t = np.arange(0, K * N)  # Temps discret
         signal = A * np.sin(2 * np.pi * nu_0 * t + phi)  # Signal sinusoïdal
@@ -303,7 +303,6 @@ def ex1_sinus():
         model_theorique = N * A**2 / 4
 
         # Création des subplots pour chaque N
-        plt.subplot(2, 2, i + 1)
         plt.grid(True)
         plt.xlabel("Fréquence réduite")
         plt.ylabel("Amplitude")
@@ -313,10 +312,10 @@ def ex1_sinus():
         # Tracé du périodogramme moyen, simple et théorique
         plt.plot(pos_freqs, periodogramme_moyen, label="Périodogramme moyen sur K tranches de taile N", color=col_)
         plt.plot(pos_freqs, liste_periodo_simples[-1], label="Périodogramme simple pour une tranche de taille N", color=col_, alpha=0.4)
-        plt.stem([nu_0], [model_theorique], linefmt='black', label="Périodogramme théorique", basefmt=" ")
+    plt.stem([nu_0], [model_theorique], linefmt='black', label="Périodogramme théorique", basefmt=" ")
 
-        plt.legend()
-        plt.yscale('log')
+    plt.legend()
+    plt.yscale('log')
 
     plt.tight_layout()
     plt.show()
@@ -357,12 +356,13 @@ def ex2():
                 tfd = np.fft.fft(signal[start_index:start_index+taille_tranche])
                 freqs= np.fft.fftfreq(taille_tranche)
                 periodogramme_liste.append(np.abs(tfd)* np.abs(tfd) / taille_tranche)
-
-            for j in range(1050-taille_tranche):
-                start_index = j
+            
+            start_index = 0
+            while start_index+taille_tranche<len(signal):
                 tfd = np.fft.fft(signal[start_index:start_index+taille_tranche])
                 freqs= np.fft.fftfreq(taille_tranche)
                 periodogramme_liste_chevauchement.append(np.abs(tfd)* np.abs(tfd) / taille_tranche)
+                start_index += taille_tranche//2
 
             periodo_moyen = compute_statistics(periodogramme_liste)['mean']
             periodo_moyen_chevauchement = compute_statistics(periodogramme_liste_chevauchement)['mean']
@@ -380,7 +380,7 @@ def ex2():
             plt.yscale('log')
 
             # Plotting the reordered periodogram
-            plt.plot(positive_freqs, positive_periodo_moyen, label='périodogramme moyen pour des tranches = ' + str(taille_tranche), color=liste_col[Tranches.index(taille_tranche)], alpha=0.4)
+            plt.plot(positive_freqs, positive_periodo_moyen, label='périodogramme moyen pour des tranches = ' + str(taille_tranche), color=liste_col[Tranches.index(taille_tranche)], alpha=0.3)
             plt.plot(positive_freqs, positive_periodo_moyen_chevauchement, label='périodogramme moyen avec chevauchement pour des tranches = ' + str(taille_tranche), color=liste_col[Tranches.index(taille_tranche)])
         
         if i==2:
@@ -432,11 +432,12 @@ def ex3():
                 freqs= np.fft.fftfreq(taille_tranche)
                 periodogramme_liste.append(np.abs(tfd)* np.abs(tfd) / taille_tranche)
 
-            for j in range(1050-taille_tranche):
-                start_index = j
+            start_index = 0
+            while start_index+taille_tranche<len(signal):
                 tfd = np.fft.fft(signal[start_index:start_index+taille_tranche]*fenetre)
                 freqs= np.fft.fftfreq(taille_tranche)
                 periodogramme_liste_chevauchement.append(np.abs(tfd)* np.abs(tfd) / taille_tranche)
+                start_index += taille_tranche//2
 
             periodo_moyen = compute_statistics(periodogramme_liste)['mean']
             periodo_moyen_chevauchement = compute_statistics(periodogramme_liste_chevauchement)['mean']
@@ -472,7 +473,6 @@ def ex3():
 
 
 
-
 def ex4():
     # Spécifier le chemin relatif du fichier dans le sous-dossier
     file_path = 'docs_consigne/signal'
@@ -481,7 +481,7 @@ def ex4():
     try:
         with open(file_path, 'rb') as f:
             # Lire les données brutes du fichier audio
-            audio_data = np.fromfile(f, dtype=np.int16)  # Assurez-vous que le type est correct pour votre fichier
+            signal = np.fromfile(f, dtype=np.float32)  # Assurez-vous que le type est correct pour votre fichier
     except Exception as e:
         print(f"Erreur lors du chargement du fichier : {e}")
         return
@@ -489,48 +489,70 @@ def ex4():
     # Afficher la longueur du signal et la fréquence d'échantillonnage
     sample_rate = 44100  # Exemple de fréquence d'échantillonnage, à ajuster selon le fichier
     print(f"Fréquence d'échantillonnage : {sample_rate} Hz")
-    print(f"Longueur du signal : {len(audio_data)} échantillons")
+    print(f"Longueur du signal : {len(signal)} échantillons")
     
     # Définir le nombre de segments pour le périodogramme moyen
-    segment_length = 1024  # Longueur de chaque segment
-    overlap = 512  # Chevauchement entre les segments
-    noverlap = segment_length - overlap
+    taille_tranche = 2048  # Longueur de chaque segment
+    liste_col = ['red','blue','green','purple']
 
-    # Fonction pour calculer le périodogramme moyen
-    def compute_periodogram(signal, segment_length, noverlap, window_func):
-        # Découper le signal en segments
-        f, Pxx = plt.psd(signal, NFFT=segment_length, Fs=sample_rate, noverlap=noverlap, window=window_func)
-        return f, Pxx
 
     # Fenêtres à utiliser : rectangulaire, Hamming et Hanning
     windows = {
-        'Rectangulaire': np.ones(segment_length),
-        'Hamming': np.hamming(segment_length),
-        'Hanning': np.hanning(segment_length)
+        'Rectangulaire': np.ones(taille_tranche),
+        'Hamming': np.hamming(taille_tranche),
+        'triangulaire': np.bartlett(taille_tranche),
+        'Blackman': np.blackman(taille_tranche)
+        
     }
     
     # Affichage des périodogrammes moyens pour chaque fenêtre
     plt.figure(figsize=(15, 10))
+    plt.title(f"Différents périodogrammes pour le signal à traiter")
 
-    for i, (window_name, window_func) in enumerate(windows.items()):
-        plt.subplot(3, 1, i + 1)
-        f, Pxx = compute_periodogram(audio_data, segment_length, noverlap, window_func)
-        plt.semilogy(f, Pxx)
-        plt.title(f"Périodogramme moyen avec fenêtre {window_name}")
-        plt.xlabel("Fréquence [Hz]")
-        plt.ylabel("Densité de puissance [V^2/Hz]")
+    for i, (fenetretxt, fenetre) in enumerate(windows.items()):
+        periodogramme_liste=[]
+        periodogramme_liste_chevauchement = []
+        for j in range(len(signal)//taille_tranche):
+            start_index = j*taille_tranche
+            tfd = np.fft.fft(signal[start_index:start_index+taille_tranche]*fenetre)
+            freqs= np.fft.fftfreq(taille_tranche)
+            periodogramme_liste.append(np.abs(tfd)* np.abs(tfd) / taille_tranche)
+
+        start_index = 0
+        while start_index+taille_tranche<len(signal):
+            tfd = np.fft.fft(signal[start_index:start_index+taille_tranche]*fenetre)
+            freqs= np.fft.fftfreq(taille_tranche)
+            periodogramme_liste_chevauchement.append(np.abs(tfd)* np.abs(tfd) / taille_tranche)
+            start_index += taille_tranche//4
+
+        periodo_moyen = compute_statistics(periodogramme_liste)['mean']
+        periodo_moyen_chevauchement = compute_statistics(periodogramme_liste_chevauchement)['mean']
+
+        # Separate and reorder the frequencies and corresponding amplitudes
+        positive_freqs = freqs[freqs >= 0]
+        positive_periodo_moyen = periodo_moyen[freqs >= 0]
+        positive_periodo_moyen_chevauchement = periodo_moyen_chevauchement[freqs >= 0]
+
         plt.grid(True)
+        plt.xlabel("Fréquence (Hz)")
+        plt.ylabel("Amplitude en dB")
+        plt.yscale('log')
 
-    plt.tight_layout()
+        # Plotting the reordered periodogram
+        plt.plot(positive_freqs, positive_periodo_moyen, label='périodogramme moyen pour une fenêtre de = ' + fenetretxt, color=liste_col[i], alpha=0.4)
+        plt.plot(positive_freqs, positive_periodo_moyen_chevauchement, label='périodogramme moyen avec chevauchement pour une fenêtre de = ' + fenetretxt, color=liste_col[i])
+ 
+    plt.legend()
     plt.show()
 
 
+
 if __name__ == "__main__":
-    ex4()
     intro()
     ex1_signal_et_bruit()
     ex1_sinus()
     ex2()
     ex3()
+    ex4()
 
 
