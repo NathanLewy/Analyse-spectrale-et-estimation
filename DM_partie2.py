@@ -21,7 +21,6 @@ N=2**17
 variance = 0.5
 sigma = np.sqrt(variance)
 
-
 # Génération d'un signal pseudo-aléatoire gaussien
 np.random.seed(42)
 pre_signal = sigma * np.random.randn(N)  # Signal total
@@ -133,7 +132,7 @@ def ex1_signal_et_bruit():
             # Création des subplots pour les périodogrammes
             plt.subplot(2, 2, liste_N.index(n) + 1)
             plt.grid(True)
-            plt.xlabel("Fréquence")
+            plt.xlabel("Fréquence normalisée")
             plt.ylabel("Amplitude en dB")
 
             # Affichage dans la même couleur d'une réalisation et de l'estimateur
@@ -180,7 +179,7 @@ def ex1_signal_et_bruit():
             # Création des subplots pour biais et variance
             plt.subplot(2, 2, liste_N.index(n) + 1)
             plt.grid(True)
-            plt.xlabel("Fréquence")
+            plt.xlabel("Fréquence normalisée")
             plt.ylabel("Amplitude en dB")
             plt.plot(pos_freqs, biais_periodogramme, label='biais du périodogramme moyen pour N = ' + str(n), color=col_, alpha=0.5)
             plt.plot(pos_freqs, variance_periodogramme, label='variance du périodogramme pour N = ' + str(n), color=col_)
@@ -247,7 +246,7 @@ def ex1_sinus():
         # Création des subplots pour chaque N
         plt.subplot(2, 2, i + 1)
         plt.grid(True)
-        plt.xlabel("Fréquence réduite")
+        plt.xlabel("Fréquence normalisée")
         plt.ylabel("Amplitude")
         plt.title(f"Différents tracés DSP d'un signal sinusoidal N = {N}")
         col_ = liste_col[i]
@@ -304,7 +303,7 @@ def ex1_sinus():
 
         # Création des subplots pour chaque N
         plt.grid(True)
-        plt.xlabel("Fréquence réduite")
+        plt.xlabel("Fréquence normalisée")
         plt.ylabel("Amplitude")
         plt.title(f"Différents tracés DSP d'un signal sinusoidal N = {N}")
         col_ = liste_col[i]
@@ -330,11 +329,12 @@ def ex2():
     N=7500
     f_ech = 1024 #Hz
     f_sinus = 140 #Hz
+    f_sinus2 = 180 
     A = np.sqrt(2)
     sigma = 0.08
 
     liste_t = np.array(range(N))/f_ech
-    signal2 = np.sin(liste_t*f_sinus)*A + np.random.rand(N)*sigma
+    signal2 = np.sin(liste_t*f_sinus)*A + np.sin(liste_t*f_sinus2)*A/100 + np.random.rand(N)*sigma
 
     Tranches = [64,128,256,512]
     liste_col = ['red','blue','green','purple']
@@ -375,7 +375,7 @@ def ex2():
 
             #plt.subplot(2, 2, Tranches.index(taille_tranche) + 1)
             plt.grid(True)
-            plt.xlabel("Fréquence (Hz)")
+            plt.xlabel("Fréquence normalisée")
             plt.ylabel("Amplitude en dB")
             plt.yscale('log')
 
@@ -402,13 +402,14 @@ def ex3():
     N=7500
     f_ech = 1024 #Hz
     f_sinus = 140 #Hz
+    f_sinus2 = 180 
     A = np.sqrt(2)
     sigma = 0.08
 
     liste_t = np.array(range(N))/f_ech
-    signal2 = np.sin(liste_t*f_sinus)*A + np.random.rand(N)*sigma
+    signal2 = np.sin(liste_t*f_sinus)*A + np.sin(liste_t*f_sinus2)*A/100 + np.random.rand(N)*sigma
 
-    taille_tranche = 512
+    taille_tranche = 1024
     liste_col = ['red','blue','green','purple']
     signals = [signal1, bruit, signal2]
     signalstxt = ['signal1', 'bruit', 'signal2']
@@ -450,7 +451,7 @@ def ex3():
 
             #plt.subplot(2, 2, Tranches.index(taille_tranche) + 1)
             plt.grid(True)
-            plt.xlabel("Fréquence (Hz)")
+            plt.xlabel("Fréquence normalisée")
             plt.ylabel("Amplitude en dB")
             plt.yscale('log')
 
@@ -539,8 +540,8 @@ def ex4():
         plt.yscale('log')
 
         # Plotting the reordered periodogram
-        plt.plot(positive_freqs, positive_periodo_moyen, label='périodogramme moyen pour une fenêtre de = ' + fenetretxt, color=liste_col[i], alpha=0.4)
-        plt.plot(positive_freqs, positive_periodo_moyen_chevauchement, label='périodogramme moyen avec chevauchement pour une fenêtre de = ' + fenetretxt, color=liste_col[i])
+        plt.plot(positive_freqs*sample_rate, positive_periodo_moyen, label='périodogramme moyen pour une fenêtre de = ' + fenetretxt, color=liste_col[i], alpha=0.4)
+        plt.plot(positive_freqs*sample_rate, positive_periodo_moyen_chevauchement, label='périodogramme moyen avec chevauchement pour une fenêtre de = ' + fenetretxt, color=liste_col[i])
  
     plt.legend()
     plt.show()
